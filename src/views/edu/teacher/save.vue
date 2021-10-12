@@ -25,6 +25,33 @@
         <el-input v-model="teacher.intro" :rows="10" type="textarea" />
       </el-form-item>
       <!-- 讲师头像：TODO -->
+      <!-- 讲师头像 -->
+      <el-form-item label="讲师头像">
+        <!-- 头衔缩略图 -->
+        <pan-thumb :image="teacher.avatar" />
+        <!-- 文件上传按钮 -->
+        <el-button
+          type="primary"
+          icon="el-icon-upload"
+          @click="imagecropperShow = true"
+          >更换头像
+        </el-button>
+        <!--v-show：是否显示上传组件
+        :key：类似于id，如果一个页面多个图片上传控件，可以做区分
+        :url：后台上传的url地址
+        @close：关闭上传组件
+        @crop-upload-success：上传成功后的回调 -->
+        <image-cropper
+          v-show="imagecropperShow"
+          :width="300"
+          :height="300"
+          :key="imagecropperKey"
+          :url="BASE_API + '/eduOss/fileOss/upload'"
+          field="file"
+          @close="close"
+          @crop-upload-success="cropSuccess"
+        />
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="saveOrUpdate">保存</el-button>
       </el-form-item>
@@ -34,8 +61,13 @@
 
 <script>
 import teacherApi from "@/api/teacher/teacher";
+//引入头像组件
+import ImageCropper from "@/components/ImageCropper";
+import PanThumb from "@/components/PanThumb";
 export default {
+  components: { ImageCropper, PanThumb },
   data() {
+    //声明引入的组件
     return {
       teacher: {
         name: "",
@@ -45,15 +77,31 @@ export default {
         intro: "",
         avatar: "",
       },
+      imagecropperShow: false,
+      imagecropperKey: 0,
+      BASE_API: process.env.BASE_API,
     };
   },
   created() {
-    if (this.$route.params && this.$route.params.id) {
-      const id = this.$route.params.id;
-      this.getInfo(id);
-    }
+    this.init();
+  },
+  watch: {
+    $route(to, from) {
+      //路由变化方式，当路由发送变化，方法就执行
+      console.log("watch $route");
+      this.init();
+    },
   },
   methods: {
+    close() {
+      this.imagecropperShow = false;
+      this.imagecropperKey = this.imagecropperKey + 1;
+    },
+    cropSuccess(data) {
+      this.imagecropperShow = false;
+      this.teacher.avatar = data.url;
+      this.imagecropperKey = this.imagecropperKey + 1;
+    },
     getInfo(id) {
       teacherApi.getTeacherInfo(id).then((response) => {
         this.teacher = response.data.item;
@@ -87,6 +135,14 @@ export default {
           path: "/teacher/table",
         });
       });
+    },
+    init() {
+      if (this.$route.params && this.$route.params.id) {
+        const id = this.$route.params.id;
+        this.getInfo(id);
+      } else {
+        this.teacher = {};
+      }
     },
   },
 };
