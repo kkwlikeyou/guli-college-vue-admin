@@ -55,18 +55,18 @@ export default {
     },
     fileUploadSuccess(resp) {
       this.loading = false;
-      console.log(resp)
+      console.log(resp);
       this.$message({
-        type: 'success',
+        type: "success",
         message: resp.message,
       });
-      this.$router.push({path:'/subject/list'})
+      this.$router.push({ path: "/subject/list" });
     },
     fileUploadError(resp) {
-      console.log(resp)
+      console.log(resp);
       this.loading = false;
       this.$message({
-        type: 'error',
+        type: "error",
         message: resp.message,
       });
     },
