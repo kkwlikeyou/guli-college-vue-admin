@@ -45,16 +45,16 @@
       </el-form-item>
 
       <!--课程讲师-->
-      <!-- <el-form-item label="课程讲师">
-        <el-select v-model="subjectTwoList" placeholder="请选择">
+      <el-form-item label="课程讲师">
+        <el-select v-model="courseInfo.teacherId" placeholder="请选择">
           <el-option
-            v-for="subject in subjectTwoList"
-            :key="subject.id"
-            :label="subject.title"
-            :value="subject.id"
+            v-for="teacher in teacherList"
+            :key="teacher.id"
+            :label="teacher.name"
+            :value="teacher.id"
           ></el-option>
         </el-select>
-      </el-form-item> -->
+      </el-form-item>
 
       <el-form-item label="总课时">
         <el-input-number
@@ -66,11 +66,23 @@
       </el-form-item>
 
       <!-- 课程简介 TODO -->
+
       <el-form-item label="课程简介">
-        <el-input v-model="courseInfo.description" placeholder="" />
+        <tinymce :height="300" v-model="courseInfo.description" />
       </el-form-item>
 
-      <!-- 课程封面 TODO -->
+      <!-- 课程封面 -->
+      <el-form-item label="课程封面">
+        <el-upload
+          :show-file-list="false"
+          :on-success="handleAvatarSuccess"
+          :before-upload="beforeAvatarUpload"
+          :action="BASE_API + '/eduOss/fileOss/upload'"
+          class="avatar-uploader"
+        >
+          <img :src="courseInfo.cover" />
+        </el-upload>
+      </el-form-item>
 
       <el-form-item label="课程价格">
         <el-input-number
@@ -96,6 +108,7 @@
 <script>
 import course from "@/api/course/course";
 import subject from "@/api/subject/subject";
+import Tinymce from "@/components/Tinymce";
 export default {
   data() {
     return {
@@ -107,12 +120,13 @@ export default {
         teacherId: "",
         lessonNum: 0,
         description: "",
-        cover: "",
+        cover: "/static/01.jpg",
         price: 0,
       },
       teacherList: [],
       subjectOneList: [],
       subjectTwoList: [],
+      BASE_API: process.env.BASE_API, // 接口API地址
     };
   },
   created() {
@@ -147,6 +161,26 @@ export default {
         }
       });
     },
+    handleAvatarSuccess(resp, file) {
+      this.courseInfo.cover = resp.data.url;
+    },
+    beforeAvatarUpload(file) {
+      const isJPG = file.type === "image/jpeg";
+      const isLt2M = file.size / 1024 / 1024 < 2;
+      if (!isJPG) {
+        this.$message.error("上传头像图片只能是 JPG 格式!");
+      }
+      if (!isLt2M) {
+        this.$message.error("上传头像图片大小不能超过 2MB!");
+      }
+      return isJPG && isLt2M;
+    },
   },
+  components: { Tinymce },
 };
 </script>
+<style scoped>
+.tinymce-container {
+  line-height: 29px;
+}
+</style>
