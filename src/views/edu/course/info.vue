@@ -114,6 +114,7 @@ export default {
     return {
       saveBtnDisabled: false,
       courseInfo: {
+        id:"",
         title: "",
         subjectId: "",
         subjectParentId: "",
@@ -127,21 +128,32 @@ export default {
       subjectOneList: [],
       subjectTwoList: [],
       BASE_API: process.env.BASE_API, // 接口API地址
+      courseId: "",
     };
   },
+  watch: {
+    $route(to, from) {
+      //路由变化方式，当路由发送变化，方法就执行
+      console.log("watch $route");
+      this.courseInfo = {};
+    },
+  },
   created() {
-    this.getListTeacher();
-    this.getOneSubject();
+    if (this.$route.params && this.$route.params.id) {
+      this.courseId = this.$route.params.id;
+      this.getCourseInfo();
+    } else {
+      this.getListTeacher();
+      this.getOneSubject();
+    }
   },
   methods: {
     saveOrUpdate() {
-      course.addCourseInfo(this.courseInfo).then((resp) => {
-        this.$message({
-          type: "success",
-          message: "添加课程信息成功",
-        });
-        this.$router.push({ path: `/course/chapter/${resp.data.courseId}` });
-      });
+      if (this.courseInfo.id) {
+        this.updateCourse();
+      } else {
+        this.addCourse();
+      }
     },
     getListTeacher() {
       course.getListTeacher().then((resp) => {
@@ -156,8 +168,9 @@ export default {
     subjectLevelOneChanged(value) {
       this.courseInfo.subjectId = "";
       this.subjectOneList.forEach((oneSubject) => {
-        if (value === oneSubject.id) {
+        if (value == oneSubject.id) {
           this.subjectTwoList = oneSubject.children;
+          
         }
       });
     },
@@ -174,6 +187,38 @@ export default {
         this.$message.error("上传头像图片大小不能超过 2MB!");
       }
       return isJPG && isLt2M;
+    },
+    getCourseInfo() {
+      course.getCourseInfo(this.courseId).then((resp) => {
+        this.courseInfo = resp.data.courseInfo;
+        subject.getSubjectList().then((resp) => {
+          this.subjectOneList = resp.data.items;
+          this.subjectOneList.forEach((oneSubject) => {
+            if (this.courseInfo.subjectParentId == oneSubject.id) {
+              this.subjectTwoList = oneSubject.children;
+            }
+          });
+        });
+        this.getListTeacher();
+      });
+    },
+    updateCourse() {
+      course.updateCourseInfo(this.courseInfo).then((resp) => {
+        this.$message({
+          type: "success",
+          message: "修改课程信息成功",
+        });
+        this.$router.push({ path: `/course/chapter/${this.courseId}` });
+      });
+    },
+    addCourse() {
+      course.addCourseInfo(this.courseInfo).then((resp) => {
+        this.$message({
+          type: "success",
+          message: "添加课程信息成功",
+        });
+        this.$router.push({ path: `/course/chapter/${resp.data.courseId}` });
+      });
     },
   },
   components: { Tinymce },
