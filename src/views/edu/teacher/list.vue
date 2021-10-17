@@ -63,7 +63,9 @@
       <el-table-column label="操作" width="200" align="center">
         <template slot-scope="scope">
           <router-link :to="'/teacher/edit/' + scope.row.id">
-            <el-button type="primary" size="mini" icon="el-icon-edit">修改</el-button>
+            <el-button type="primary" size="mini" icon="el-icon-edit"
+              >修改</el-button
+            >
           </router-link>
           <el-button
             type="danger"
