@@ -119,7 +119,6 @@ export default {
           console.log(error);
         });
     },
-
     removeDataById(id) {
       this.$confirm("此操作将永久删除讲师记录, 是否继续?", "提示", {
         confirmButtonText: "确定",
